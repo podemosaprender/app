@@ -10,9 +10,19 @@ Hola Mundo!
   APP_SECRET="917d6bffd830dafb90365f14c1aa3b0a5204df73";
   AUTH_TOKEN= null;
 
+  EX_file_data= {
+    "message": "mi nuevo commit message",
+    "committer": {
+      "name": "Scott Grand Chacon",
+      "email": "schacon@gmail.com"
+    },
+    "content": btoa("Esto si se puede leer\ny parece código")
+  };
+  //U: para reemplazar necesito el sha de la version anterior!
+
   function set_api_file(repo,fname,data) {
     //SEE: https://developer.github.com/v3/repos/contents/#create-a-file
-    url= "/repos/"+USER.login+"/"+repo+"/contents/"+fname;
+    url= "https://api.github.com/repos/"+USER.login+"/"+repo+"/contents/"+fname; 
     xp= fetch(url, {
        headers: {
           "Authorization": "token "+AUTH_TOKEN,
@@ -23,8 +33,8 @@ Hola Mundo!
        cache: "no-cache",
        body: JSON.stringify(data)
     });
-    xp.then(response => response.json())
-      .then( d => { console.log("FILE",d); USER=d });       
+    return xp.then(response => response.json())
+      .then( d => { console.log("FILE",d); return d});       
   }
 
   function api_user() {
@@ -41,7 +51,7 @@ Hola Mundo!
     })
     
     xp.then(response => response.json())
-      .then( d => { console.log("USER",d); USER=d });  
+      .then( d => { console.log("USER",d); USER=d; });  
   }
 
   function api_token(code) {
@@ -61,7 +71,7 @@ Hola Mundo!
     })
     
     xp.then(response => response.text())
-      .then( d => { console.log("AUTH TOK",d); AUTH_TOKEN= (d.match(/access_token=([^&]+)/)||[])[1] });
+      .then( d => { console.log("AUTH TOK",d); AUTH_TOKEN= (d.match(/access_token=([^&]+)/)||[])[1]; api_user() });
   }
 
   function api_check() {
