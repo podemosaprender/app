@@ -16,22 +16,17 @@ Hola Mundo!
             "&client_secret="+APP_SECRET+
             "&redirect_uri="+APP_URL+
             "&code="+code;
-    data= { client_id: APP_CLIENT_ID, client_secret: APP_SECRET, code: code, redirect_uri:APP_URL};
     xp= fetch(url, {
         method: "POST", // *GET, POST, PUT, DELETE, etc.
         mode: "no-cors", // no-cors, cors, *same-origin
         cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
         credentials: "same-origin", // include, *same-origin, omit
-        headers: {
-            "Content-Type": "application/json",
-        },
         redirect: "follow", // manual, *follow, error
         referrer: "client", // no-referrer, *client
-        body: JSON.stringify(data), // body data type must match "Content-Type" header
     })
     
     xp.then(response => response.text())
-      .then((d) => { console.log("AUTH TOK",d); AUTH_TOKEN= (d.match(/access_token=([^&]+)/)||[])[1] });
+      .then( d => { console.log("AUTH TOK",d); AUTH_TOKEN= (d.match(/access_token=([^&]+)/)||[])[1] });
   }
 
   function api_check() {
