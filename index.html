@@ -34,7 +34,7 @@ Hola Mundo!
       .then((d) => { console.log("AUTH TOK",d); AUTH_TOKEN= d.access_token });
   }
 
-  if (_t= window.location.href.match(/code=([^&]+)/) { 
+  if (_t= window.location.href.match(/code=([^&]+)/)) { 
     api_token(_t[1]);
   }
 
