@@ -1,16 +1,33 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sjcl/1.0.8/sjcl.min.js"></script>
 
-Hola Mundo!
+<h1>FaceHub</h1>
+
+<p>(¿tipo facebook pero guardando en github?)</p>
+<p>La <b>ventaja</b> sería una red social donde cada persona guarda sus datos donde quiere y controla quien los ve</p>
+<p>En este caso, cada persona "postea" en su repo, eligiendo si el post está encriptado. Para ver mis posts te paso el link a mi repo y los passwords de los que te dejo ver.</p>
 
 <!-- SEE: https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/#web-application-flow -->
+<p id="login_lnk"><a href="https://github.com/login/oauth/authorize?client_id=b1435b2c5017a7244412&scope=user%20public_repo">Entrar con github</a></p>
 
-<p><a href="https://github.com/login/oauth/authorize?client_id=b1435b2c5017a7244412&scope=user%20public_repo">Entrar con github</a></p>
+<p>Pass: <input id="pass"></p>
+<p><textarea id="msg" rows=25 cols=10></textarea></p>
+<p><button id="guardar">Guardar</button></p>
+<hr>
+<p><button id="refrescar">Refrescar</button>
+<div id="posts">
+</div>
 
 <script>
+	//S: esta app
   APP_URL="https://www.podemosaprender.org/app/"; //U: la api la pide, tiene que ser igual a redirect url
   APP_CLIENT_ID="b1435b2c5017a7244412";
   APP_SECRET="917d6bffd830dafb90365f14c1aa3b0a5204df73";
-  AUTH_TOKEN= null;
+
+	//S: cfg
+	CFG_REPO_NAME="x_facehub";		
+
+	//S: estado de la app
+  AuthToken= null;
 
   EX_file_data= {
     "message": "mi nuevo commit message",
@@ -22,12 +39,42 @@ Hola Mundo!
   };
   //U: para reemplazar necesito el sha de la version anterior!
 
+  function keys_api_file(repo) {
+    //SEE: https://developer.github.com/v3/repos/contents/#create-a-file
+    url= "https://api.github.com/repos/"+USER.login+"/"+repo+"/contents/"; 
+    xp= fetch(url, {
+       headers: {
+          "Authorization": "token "+AuthToken,
+          "Content-type": "application/json"
+       },
+       mode: "cors",
+       cache: "no-cache",
+    });
+    return xp.then(response => response.json())
+      .then( d => { console.log("FILE KEYS",d); return d});       
+  }
+
+  function get_api_file(repo,path) {
+    //SEE: https://developer.github.com/v3/repos/contents/#create-a-file
+    var url= "https://api.github.com/repos/"+USER.login+"/"+repo+"/contents/"+path; 
+    var xp= fetch(url, {
+       headers: {
+          "Authorization": "token "+AuthToken,
+          "Content-type": "application/json"
+       },
+       mode: "cors",
+       cache: "no-cache",
+    });
+    return xp.then(response => response.json())
+      .then( d => { console.log("FILE",path,d); return d});       
+  }
+
   function set_api_file(repo,fname,data) {
     //SEE: https://developer.github.com/v3/repos/contents/#create-a-file
     url= "https://api.github.com/repos/"+USER.login+"/"+repo+"/contents/"+fname; 
     xp= fetch(url, {
        headers: {
-          "Authorization": "token "+AUTH_TOKEN,
+          "Authorization": "token "+AuthToken,
           "Content-type": "application/json"
        },
        method: "PUT",
@@ -43,7 +90,7 @@ Hola Mundo!
     url= "https://api.github.com/user"
     xp= fetch(url, {
         headers: {
-          "Authorization": "token "+AUTH_TOKEN,
+          "Authorization": "token "+AuthToken,
         },
         mode: "cors", // no-cors, cors, *same-origin
         cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
@@ -73,7 +120,7 @@ Hola Mundo!
     })
     
     xp.then(response => response.text())
-      .then( d => { console.log("AUTH TOK",d); AUTH_TOKEN= (d.match(/access_token=([^&]+)/)||[])[1]; api_user() });
+      .then( d => { console.log("AUTH TOK",d); AuthToken= (d.match(/access_token=([^&]+)/)||[])[1]; api_user() });
   }
 
   function api_check() {
@@ -83,7 +130,67 @@ Hola Mundo!
     }
   }
 
-  api_check();
+//============================================================
+//S: ui
+	function mk_post(grupo, texto, pass, responde_a_uri) { //U: todos los mensajes tienen un grupo, asi se que pass usar automaticamente
+		var contenido= JSON.stringify({
+			responde_a_uri: responde_a_uri,
+			texto: texto,
+		});
 
+		if (pass) { contenido= sjcl.encript(pass,contenido) };
+
+		var m= {
+			"message": new Date().toJSON(),
+			"committer": {
+				"name": "Podemos Aprender FaceHub",
+				"email": "facehub@podemosaprender.org"
+			},
+			"content": btoa(contenido) //A: base64
+		};
+
+		return m;
+	}
+
+	function save_post(grupo, texto, pass, responde_a_uri) {
+		var m= mk_post(grupo,texto,pass, responde_a_uri);
+		set_api_file(CFG_REPO_NAME,"p_"+grupo+"__"+(new Date().toJSON())+".txt",m);
+	}
+
+	function all_posts() {
+		return keys_api_file(CFG_REPO_NAME).then( postsMeta => {
+			return Promise.all(postsMeta.map( m => get_api_file(CFG_REPO_NAME,m.path) ))
+				.then( postsData => { console.log("POSTS DATA", postsData); return postsData.map( pd => atob(pd.content) ) } )
+		});
+	}
+	
+	function ui_data_for_post() {
+		return {
+			pass: document.getElementById("pass").value,
+			msg: document.getElementById("msg").value,
+		}
+	}
+
+	function ui_save_post() {
+		var d= ui_data_for_post();
+		save_post("publico",d.msg,d.pass,d.responde_a_uri);
+	}
+
+	function ui_refresh_posts() {
+		all_posts().then( postsContent => {
+			document.getElementById("posts").innerHTML= 
+				postsContent.map(c => "<hr><p>"+c+"</p>").join("");
+		});	
+	}
+
+	function ui_init() {
+		document.getElementById("guardar").onclick= ui_save_post;
+		document.getElementById("refrescar").onclick= ui_load_posts;
+	}
+
+//============================================================
+//S: main
+  api_check();
+	ui_init();
 </script>
 
