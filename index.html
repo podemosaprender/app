@@ -10,6 +10,23 @@ Hola Mundo!
   APP_SECRET="917d6bffd830dafb90365f14c1aa3b0a5204df73";
   AUTH_TOKEN= null;
 
+  function api_user() {
+    url= "https://api.github.com/user"
+    xp= fetch(url, {
+        headers: {
+          "Authorization": "token "+AUTH_TOKEN,
+        },
+        mode: "cors", // no-cors, cors, *same-origin
+        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: "same-origin", // include, *same-origin, omit
+        redirect: "follow", // manual, *follow, error
+        referrer: "no-referrer", // no-referrer, *client
+    })
+    
+    xp.then(response => response.json())
+      .then( d => { console.log("USER",d); USER=d });  
+  }
+
   function api_token(code) {
     //SEE: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
     url= "https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token?client_id="+APP_CLIENT_ID+
@@ -32,6 +49,7 @@ Hola Mundo!
 
   function api_check() {
     if (_t= window.location.href.match(/code=([^&]+)/)) { 
+      window.location.href= window.location.href.replace(/\?.*/,"");
       api_token(_t[1]);
     }
   }
