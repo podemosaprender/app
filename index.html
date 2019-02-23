@@ -12,10 +12,11 @@ Hola Mundo!
 
   function api_token(code) {
     //SEE: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-    url= "https://github.com/login/oauth/access_token?client_id="+APP_CLIENT_ID+
+    url= "https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token?client_id="+APP_CLIENT_ID+
             "&client_secret="+APP_SECRET+
             "&redirect_uri="+APP_URL+
-            "&code="+code;
+            "&code="+code; //XXX:SEC le estamos dando el access token a cors-anywhere!!! Usar https://github.com/prose/gatekeeper
+
     xp= fetch(url, {
         method: "POST", // *GET, POST, PUT, DELETE, etc.
         mode: "cors", // no-cors, cors, *same-origin
