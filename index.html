@@ -24,19 +24,20 @@ Hola Mundo!
         credentials: "same-origin", // include, *same-origin, omit
         headers: {
             "Content-Type": "application/json",
-            "Accept": "application/json"
         },
         redirect: "follow", // manual, *follow, error
         referrer: "client", // no-referrer, *client
         body: JSON.stringify(data), // body data type must match "Content-Type" header
     })
     
-    xp.then(response => response.json())
-      .then((d) => { console.log("AUTH TOK",d); AUTH_TOKEN= d.access_token });
+    xp.then(response => response.text())
+      .then((d) => { console.log("AUTH TOK",d); AUTH_TOKEN= (d.match(/access_token=([^&]+)/)||[])[1] });
   }
 
-  if (_t= window.location.href.match(/code=([^&]+)/)) { 
-    api_token(_t[1]);
+  function api_check() {
+    if (_t= window.location.href.match(/code=([^&]+)/)) { 
+      api_token(_t[1]);
+    }
   }
 
 </script>
