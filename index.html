@@ -2,5 +2,40 @@ Hola Mundo!
 
 <!-- SEE: https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/#web-application-flow -->
 
-<a href="https://github.com/login/oauth/authorize?client_id=b1435b2c5017a7244412&user%20public_repo">Entrar con github</a>
+<p><a href="https://github.com/login/oauth/authorize?client_id=b1435b2c5017a7244412&user%20public_repo">Entrar con github</a></p>
+
+<script>
+  APP_URL="https://www.podemosaprender.org/app/"; //U: la api la pide, tiene que ser igual a redirect url
+  APP_CLIENT_ID="b1435b2c5017a7244412";
+  APP_SECRET="917d6bffd830dafb90365f14c1aa3b0a5204df73";
+  AUTH_TOKEN= null;
+
+  function api_token(code) {
+    //SEE: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+    url= "https://github.com/login/oauth/access_token?client_id="+APP_CLIENT_ID+
+            "&client_secret="+APP_SECRET+
+            "&redirect_uri="+APP_URL+
+            "&code="+code;
+    data= { client_id: APP_CLIENT_ID, client_secret: APP_SECRET, code: code, redirect_uri:APP_URL};
+    xp= fetch(url, {
+        method: "POST", // *GET, POST, PUT, DELETE, etc.
+        mode: "no-cors", // no-cors, cors, *same-origin
+        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: "same-origin", // include, *same-origin, omit
+        headers: {
+            "Content-Type": "application/json",
+        },
+        redirect: "follow", // manual, *follow, error
+        referrer: "client", // no-referrer, *client
+        body: JSON.stringify(data), // body data type must match "Content-Type" header
+    })
+    
+    xp.then(response => response.json())
+      .then((d) => { console.log("AUTH TOK",d); AUTH_TOKEN= d.access_token });
+  }
+
+  if (_t= window.location.href.match(/code=([^&]+)/) { 
+    api_token(_t[1]);
+  }
+
 
