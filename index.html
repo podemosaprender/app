@@ -2,13 +2,30 @@ Hola Mundo!
 
 <!-- SEE: https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/#web-application-flow -->
 
-<p><a href="https://github.com/login/oauth/authorize?client_id=b1435b2c5017a7244412&user%20public_repo">Entrar con github</a></p>
+<p><a href="https://github.com/login/oauth/authorize?client_id=b1435b2c5017a7244412&scope=user%20public_repo">Entrar con github</a></p>
 
 <script>
   APP_URL="https://www.podemosaprender.org/app/"; //U: la api la pide, tiene que ser igual a redirect url
   APP_CLIENT_ID="b1435b2c5017a7244412";
   APP_SECRET="917d6bffd830dafb90365f14c1aa3b0a5204df73";
   AUTH_TOKEN= null;
+
+  function set_api_file(repo,fname,data) {
+    //SEE: https://developer.github.com/v3/repos/contents/#create-a-file
+    url= "/repos/"+USER.login+"/"+repo+"/contents/"+fname;
+    xp= fetch(url, {
+       headers: {
+          "Authorization": "token "+AUTH_TOKEN,
+          "Content-type": "application/json"
+       },
+       method: "PUT",
+       mode: "cors",
+       cache: "no-cache",
+       body: JSON.stringify(data)
+    });
+    xp.then(response => response.json())
+      .then( d => { console.log("FILE",d); USER=d });       
+  }
 
   function api_user() {
     url= "https://api.github.com/user"
